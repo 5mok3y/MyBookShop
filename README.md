@@ -37,7 +37,7 @@ dotnet user-secrets set "Zarinpal:MerchantId" "YOUR_MERCHANT_ID"
 
 ---
 
-📌 Notes
+## 📌 Notes
 
 - This project is created for learning purposes
 - Sensitive files are excluded via .gitignore
