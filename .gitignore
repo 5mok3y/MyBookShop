@@ -361,3 +361,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# EF Core Migrations
+/Migrations/
+
+/MyBookShop/Migrations
+/MyBookShop/wwwroot/images/books
+/MyBookShop/wwwroot/images/books/8335b60d-6b90-403f-9f40-c78db26e2125.jpg
