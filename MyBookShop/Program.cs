@@ -7,6 +7,7 @@ using MyBookShop.Models.Identity;
 using MyBookShop.Services.Auth;
 using MyBookShop.Services.CheckOut;
 using MyBookShop.Services.Gateway.Zarinpal;
+using MyBookShop.Services.Media;
 using MyBookShop.Services.Payment;
 using MyBookShop.Services.SeedData;
 using Scalar.AspNetCore;
@@ -72,6 +73,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
+
+builder.Services.AddScoped<IImageService, ImageService>();
 
 #endregion
 

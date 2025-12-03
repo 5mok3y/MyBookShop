@@ -22,7 +22,8 @@ namespace MyBookShop.Models.Library.Books
         [Required]
         public required int Quantity { get; set; }
 
-
+        // Navigation
         public List<Author> Authors { get; set; } = new();
+        public List<BookImage> Images { get; set; } = new();
     }
 }

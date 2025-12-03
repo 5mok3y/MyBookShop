@@ -8,7 +8,6 @@ namespace MyBookShop.Models.Library.Books
         [MinLength(1)]
         public required string Title { get; set; }
 
-        [Required]
         public List<int> AuthorIds { get; set; } = new();
 
         [Required]
@@ -20,5 +19,9 @@ namespace MyBookShop.Models.Library.Books
 
         [Required]
         public required int Quantity { get; set; }
+
+        public List<IFormFile> Images { get; set; } = new();
+
+        public int CoverImageIndex { get; set; }
     }
 }

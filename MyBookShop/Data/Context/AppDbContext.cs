@@ -15,6 +15,7 @@ namespace MyBookShop.Data.Context
         public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
         public DbSet<Book> Books => Set<Book>();
+        public DbSet<BookImage> BookImages => Set<BookImage>();
         public DbSet<Author> Authors => Set<Author>();
         public DbSet<AuthorToBook> AuthorsToBooks => Set<AuthorToBook>();
         public DbSet<Cart> Carts => Set<Cart>();
