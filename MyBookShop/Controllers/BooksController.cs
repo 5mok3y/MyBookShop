@@ -146,63 +146,70 @@ namespace MyBookShop.Controllers
                 return BadRequest("One or more author IDs are invalid.");
             }
 
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var book = new Book()
+            try
             {
-                Title = newBook.Title,
-                Authors = authors,
-                PublishYear = newBook.PublishYear,
-                Price = newBook.Price,
-                Quantity = newBook.Quantity
-            };
-
-            _context.Books.Add(book);
-            await _context.SaveChangesAsync();
-
-            // Image upload
-
-            for (int i = 0; i < newBook.Images.Count; i++)
-            {
-                var uploadResult = await _imageService.UploadImageAsync(newBook.Images[i]);
-                if (!uploadResult.Success)
+                var book = new Book
                 {
-                    return BadRequest($"Image upload failed: {string.Join(", ", uploadResult.Errors ?? new List<string>())}");
-                }
-
-                var bookImage = new BookImage
-                {
-                    BookId = book.Id,
-                    ImagePath = uploadResult.Response!.ImagePath,
-                    IsCoverImage = (i == newBook.CoverImageIndex)
+                    Title = newBook.Title,
+                    Authors = authors,
+                    PublishYear = newBook.PublishYear,
+                    Price = newBook.Price,
+                    Quantity = newBook.Quantity,
+                    Images = new()
                 };
 
-                _context.BookImages.Add(bookImage);
+                _context.Books.Add(book);
+
+                for (int i = 0; i < newBook.Images.Count; i++)
+                {
+                    var uploadResult = await _imageService.UploadImageAsync(newBook.Images[i]);
+
+                    if (!uploadResult.Success)
+                    {
+                        return BadRequest($"Image upload failed: {string.Join(", ", uploadResult.Errors ?? new List<string>())}");
+                    }
+                        
+                    book.Images.Add(new BookImage
+                    {
+                        ImagePath = uploadResult.Response!.ImagePath,
+                        IsCoverImage = i == newBook.CoverImageIndex
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                var result = new BookResponseDto
+                {
+                    Id = book.Id,
+                    Title = book.Title,
+                    PublishYear = book.PublishYear,
+                    Price = book.Price,
+                    Quantity = book.Quantity,
+
+                    Authors = authors.Select(a => new AuthorResponseDto
+                    {
+                        Id = a.Id,
+                        FullName = a.FullName
+                    }).ToList(),
+
+                    Images = book.Images.Select(i => new BookImageResponseDto
+                    {
+                        Id = i.Id,
+                        ImagePath = i.ImagePath,
+                        IsCoverImage = i.IsCoverImage
+                    }).ToList()
+                };
+
+                return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, result);
             }
-            await _context.SaveChangesAsync();
-
-            var result = new BookResponseDto
+            catch
             {
-                Id = book.Id,
-                Title = book.Title,
-                PublishYear = book.PublishYear,
-                Price = book.Price,
-                Quantity = book.Quantity,
-
-                Authors = book.Authors.Select(a => new AuthorResponseDto()
-                {
-                    Id = a.Id,
-                    FullName = a.FullName
-                }).ToList(),
-
-                Images = book.Images.Select(i => new BookImageResponseDto()
-                {
-                    Id = i.Id,
-                    ImagePath = i.ImagePath,
-                    IsCoverImage = i.IsCoverImage
-                }).ToList()
-            };
-
-            return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, result);
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         [HttpPut("{id}")]
