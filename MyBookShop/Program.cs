@@ -11,6 +11,7 @@ using MyBookShop.Services.Media;
 using MyBookShop.Services.Payment;
 using MyBookShop.Services.SeedData;
 using Scalar.AspNetCore;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -127,19 +128,24 @@ while (retry > 0)
     {
         using (var scope = app.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            db.Database.Migrate();
+            var services = scope.ServiceProvider;
+            var context = services.GetRequiredService<AppDbContext>();
+
+            context.Database.EnsureCreated();
+
+            await SeedAdmin.InitializeAsync(app);
         }
         break;
     }
     catch
     {
         retry--;
+        Console.WriteLine($"Error connecting to DB. Retrying... ({retry} attempts left)");
         Thread.Sleep(5000);
     }
 }
 #endregion
 
-await SeedAdmin.InitializeAsync(app);
+
 
 app.Run();
