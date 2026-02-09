@@ -1,0 +1,46 @@
+services:
+  mybookshop-api:
+    image: ${DOCKER_REGISTRY-}mybookshop
+    build:
+      context: .
+      dockerfile: MyBookShop/Dockerfile
+    container_name: mybookshop-api
+    ports:
+      - "127.0.0.1:5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=mybookshop-sql;Database=MyBookShop_DB;User=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=False;TrustServerCertificate=True;
+      - Jwt__Secret=${JWT_SECRET}
+      - Zarinpal__MerchantId=${ZARINPAL_MERCHANT_ID}
+    depends_on:
+      mybookshop-sql:
+        condition: service_healthy
+    volumes:
+      - ./MyBookShop/wwwroot:/app/wwwroot
+      - ./logs:/app/logs
+    networks:
+      - mybookshop-network
+    restart: unless-stopped
+
+  mybookshop-sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mybookshop-sql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+      - MSSQL_PID=Express
+    volumes:
+      - ./data/mssql:/var/opt/mssql
+    networks:
+      - mybookshop-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  mybookshop-network:
+    driver: bridge
