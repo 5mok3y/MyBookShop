@@ -30,7 +30,7 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
       - MSSQL_PID=Express
-      - MSSQL_MEMORY_LIMIT_MB=512
+      - MSSQL_MEMORY_LIMIT_MB=600
     volumes:
       - ./data/mssql:/var/opt/mssql
     networks:
@@ -39,12 +39,8 @@ services:
     healthcheck:
       test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${MSSQL_SA_PASSWORD}", "-Q", "SELECT 1"]
       interval: 20s
-      timeout: 5s
+      timeout: 10s
       retries: 5
-    deploy:
-      resources:
-        limits:
-          memory: 600M
 
 networks:
   mybookshop-network:
