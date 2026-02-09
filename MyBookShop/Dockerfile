@@ -16,8 +16,8 @@ USER $APP_UID
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["MyBookShop.csproj", "."]
-RUN dotnet restore "./MyBookShop.csproj"
+COPY ["MyBookShop/MyBookShop.csproj", "MyBookShop/"]
+RUN dotnet restore "MyBookShop/MyBookShop.csproj"
 COPY . .
 WORKDIR "/src/."
 RUN dotnet build "./MyBookShop.csproj" -c $BUILD_CONFIGURATION -o /app/build
