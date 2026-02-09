@@ -86,6 +86,17 @@ builder.Services.AddSingleton<Zarinpal>();
 
 #endregion
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevCors", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -93,15 +104,41 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+
+    app.UseCors("DevCors");
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+#region Migration Builder
+
+var retry = 5;
+while (retry > 0)
+{
+    try
+    {
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.Migrate();
+        }
+        break;
+    }
+    catch
+    {
+        retry--;
+        Thread.Sleep(5000);
+    }
+}
+#endregion
 
 await SeedAdmin.InitializeAsync(app);
 

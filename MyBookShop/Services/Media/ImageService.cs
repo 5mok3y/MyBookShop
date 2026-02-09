@@ -44,7 +44,9 @@ namespace MyBookShop.Services.Media
 
             if (file.Length > _maxSize)
             {
-                return ServiceResult<ImageUploadResultDto>.Failed(new() { "Image size cannot exceed 2MB" });
+                var maxSizeInMb = _maxSize / (1024 * 1024.0);
+
+                return ServiceResult<ImageUploadResultDto>.Failed(new() { $"Image size cannot exceed {maxSizeInMb:0.#} MB" });
             }
 
             if (!_allowedMimes.Contains(file.ContentType))

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MyBookShop.Models.Auth;
 using MyBookShop.Services.Auth;
+using System.Security.Claims;
 
 namespace MyBookShop.Controllers
 {
@@ -43,6 +45,20 @@ namespace MyBookShop.Controllers
             }
 
             return Ok(result.Response);
+        }
+
+        [Authorize]
+        [HttpPost("ChangePassword")]
+        public async Task<ActionResult> ChangePasswordAsync(ChangePasswordDto request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var result = await _authService.ChangePasswordAsync(userId!, request);
+            if (!result.Success)
+            {
+                return BadRequest(result.Errors);
+            }
+            return Ok(result);
         }
     }
 }

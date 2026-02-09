@@ -244,5 +244,41 @@ namespace MyBookShop.Services.Auth
 
             return CryptographicOperations.FixedTimeEquals(providedHashBytes, storedHashBytes);
         }
+
+        public async Task<ServiceResult<bool>> ChangePasswordAsync(string userId, ChangePasswordDto request)
+        {
+            if (request is null)
+            {
+                return ServiceResult<bool>.Failed(new() { "Ivalid parameters" });
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is null)
+            {
+                return ServiceResult<bool>.Failed(new() { "User not found" });
+            }
+
+            if (request.NewPassword == request.CurrentPassword)
+            {
+                return ServiceResult<bool>.Failed(
+                    new() { "New password must be different from current password" });
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e => e.Description).ToList();
+                return ServiceResult<bool>.Failed(errors);
+            }
+
+            await _context.RefreshTokens    
+            .Where(t => t.UserId == user.Id && !t.IsRevoked)
+            .ExecuteUpdateAsync(t =>
+            t.SetProperty(x => x.IsRevoked, true));
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            return ServiceResult<bool>.Ok(true);
+        }
     }
 }
